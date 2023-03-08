@@ -14,8 +14,13 @@ public class NewConversationCommand {
     }
 
     private static int execute(ServerCommandSource source) {
-        MCGPT.nextConversation();
-        source.sendFeedback(Text.literal("Started a new conversation"), false);
+        boolean newConversation = MCGPT.nextConversation();
+        int index = MCGPT.getConversationIndex();
+        if(newConversation) {
+            source.sendFeedback(Text.literal("§b[MCGPT]: §fStarted a new conversation (" + (index + 1) + ")"), false);
+        } else {
+            source.sendFeedback(Text.literal("§b[MCGPT]: §fContinuing conversation (" + (index + 1) + ")"), false);
+        }
         return 1;
     }
 }

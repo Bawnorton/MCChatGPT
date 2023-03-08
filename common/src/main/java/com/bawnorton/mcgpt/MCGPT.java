@@ -53,11 +53,20 @@ public class MCGPT {
         return false;
     }
 
-    public static void nextConversation() {
-        if(notAuthed()) return;
+    public static int getConversationIndex() {
+        return conversationIndex;
+    }
+
+    public static boolean nextConversation() {
+        if(notAuthed()) return false;
+        if(conversationIndex < conversations.size() - 1) {
+            conversationIndex++;
+            return false;
+        }
         conversations.add(new ArrayList<>());
         conversationIndex = conversations.size() - 1;
         conversations.get(conversationIndex).add(new ChatMessage("system", "You are an AI assistant in the game Minecraft. You are using the in game chat to communicate, thus, your responses should be quite short (256 characters max). Assume the player cannot access commands unless they explicitly ask for them."));
+        return true;
     }
 
     public static void previousConversation() {
@@ -81,7 +90,7 @@ public class MCGPT {
         ChatMessage reply = service.createChatCompletion(req).getChoices().get(0).getMessage();
         conversation.add(reply);
         if(conversation.size() > 10) {
-            conversation.remove(0);
+            conversation.remove(1); // don't remove the first message, as it's the minecraft context
         }
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player != null) {

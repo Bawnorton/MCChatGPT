@@ -23,18 +23,18 @@ public class AuthCommand {
     private static int execute(ServerCommandSource source, String token) {
         if(token.length() != 51) {
             MCGPT.LOGGER.error("Invalid token length");
-            source.sendFeedback(Text.literal("Invalid token"), false);
+            source.sendFeedback(Text.literal("§b[MCGPT]: §cInvalid token"), false);
             return 0;
         }
         if(!token.startsWith("sk-")) {
             MCGPT.LOGGER.error("Invalid token prefix");
-            source.sendFeedback(Text.literal("Invalid token"), false);
+            source.sendFeedback(Text.literal("§b[MCGPT]: §cInvalid token"), false);
             return 0;
         }
         Config.getInstance().token = SecureTokenStorage.encrypt(token);
         ConfigManager.saveConfig();
         MCGPT.startService();
-        source.sendFeedback(Text.literal("Successfully authenticated"), false);
+        source.sendFeedback(Text.literal("§b[MCGPT]: §aSuccessfully authenticated"), false);
         return 1;
     }
 }

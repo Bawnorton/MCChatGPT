@@ -15,7 +15,8 @@ public class PreviousConversationCommand {
 
     private static int execute(ServerCommandSource source) {
         MCGPT.previousConversation();
-        source.sendFeedback(Text.literal("Current conversation is now the previous one"), false);
+        int index = MCGPT.getConversationIndex();
+        source.sendFeedback(Text.literal("§b[MCGPT]: §fContinuing conversation (" + (index + 1) + ")"), false);
         return 1;
     }
 }
