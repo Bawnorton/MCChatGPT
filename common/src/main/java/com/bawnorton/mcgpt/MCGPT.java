@@ -4,9 +4,9 @@ import com.bawnorton.mcgpt.command.Commands;
 import com.bawnorton.mcgpt.config.Config;
 import com.bawnorton.mcgpt.config.ConfigManager;
 import com.bawnorton.mcgpt.store.SecureTokenStorage;
-import com.theokanning.openai.service.OpenAiService;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
+import com.theokanning.openai.service.OpenAiService;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -17,14 +17,22 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MCGPT {
     public static final String MOD_ID = "mcgpt";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+    private static final ExecutorService executor;
+
     private static OpenAiService service;
     private static List<List<ChatMessage>> conversations;
     private static int conversationIndex = 0;
+
+    static {
+        executor = Executors.newFixedThreadPool(1);
+    }
 
     public static void init() {
         conversations = new ArrayList<>();
@@ -87,26 +95,34 @@ public class MCGPT {
         }
     }
 
+    private static void askSync(String question) {
+        if(conversations.size() == 0) {
+            nextConversation();
+        }
+        List<ChatMessage> conversation = conversations.get(conversationIndex);
+        conversation.add(new ChatMessage("user", question));
+        ChatCompletionRequest req = ChatCompletionRequest.builder()
+                .messages(conversation)
+                .model("gpt-3.5-turbo")
+                .build();
+        ChatMessage reply = service.createChatCompletion(req).getChoices().get(0).getMessage();
+        conversation.add(reply);
+        if(conversation.size() > 10) {
+            conversation.remove(1); // don't remove the first message, as it's the minecraft context
+        }
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        if(player != null) {
+            player.sendMessage(Text.of("<ChatGPT> " + reply.getContent().replaceAll("^\\s+|\\s+$", "")), false);
+        }
+    }
+
     public static void ask(String question) {
         if(notAuthed()) return;
-        MinecraftClient.getInstance().execute(() -> {
-            if(conversations.size() == 0) {
-                nextConversation();
-            }
-            List<ChatMessage> conversation = conversations.get(conversationIndex);
-            conversation.add(new ChatMessage("user", question));
-            ChatCompletionRequest req = ChatCompletionRequest.builder()
-                    .messages(conversation)
-                    .model("gpt-3.5-turbo")
-                    .build();
-            ChatMessage reply = service.createChatCompletion(req).getChoices().get(0).getMessage();
-            conversation.add(reply);
-            if(conversation.size() > 10) {
-                conversation.remove(1); // don't remove the first message, as it's the minecraft context
-            }
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if(player != null) {
-                player.sendMessage(Text.of("<ChatGPT> " + reply.getContent().replaceAll("^\\s+|\\s+$", "")), false);
+        executor.execute(() -> {
+            try {
+                askSync(question);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
     }

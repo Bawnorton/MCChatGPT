@@ -30,6 +30,7 @@ dependencies {
     include(implementation("com.theokanning.openai-gpt3-java:client:0.11.0"))
 
     include(implementation("io.reactivex.rxjava2:rxjava:2.0.0"))
+    include(implementation("org.reactivestreams:reactive-streams:1.0.3"))
 
     include(implementation(api('com.squareup.retrofit2:retrofit:2.9.0')))
     include(implementation('com.squareup.retrofit2:adapter-rxjava2:2.9.0'))
