@@ -1,0 +1,35 @@
+modLoader = "javafml"
+loaderVersion = "[43,)"
+#issueTrackerURL = ""
+license = "MIT License"
+
+[[mods]]
+modId = "mcgpt"
+version = "${version}"
+displayName = "MCChatGPT"
+authors = "Bawnorton"
+description = '''
+A mod that provides a chat command to interact with ChatGPT in the context of Minecraft.
+'''
+#logoFile = ""
+
+[[dependencies.mcgpt]]
+modId = "forge"
+mandatory = true
+versionRange = "[43,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mcgpt]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.19.2,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mcgpt]]
+modId = "architectury"
+mandatory = true
+versionRange = "[6.2.43,)"
+ordering = "AFTER"
+side = "BOTH"
