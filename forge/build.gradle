@@ -33,8 +33,23 @@ dependencies {
     modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 
     include(implementation(forgeRuntimeLibrary("com.theokanning.openai-gpt3-java:service:0.11.0")))
+    include(implementation(forgeRuntimeLibrary("com.theokanning.openai-gpt3-java:api:0.11.0")))
+    include(implementation(forgeRuntimeLibrary("com.theokanning.openai-gpt3-java:client:0.11.0")))
 
-    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    include(implementation(forgeRuntimeLibrary("io.reactivex.rxjava2:rxjava:2.0.0"))) 
+
+    include(implementation(api(forgeRuntimeLibrary('com.squareup.retrofit2:retrofit:2.9.0')))) 
+    include(implementation(forgeRuntimeLibrary('com.squareup.retrofit2:adapter-rxjava2:2.9.0'))) 
+    include(implementation(forgeRuntimeLibrary('com.squareup.retrofit2:converter-jackson:2.9.0'))) 
+
+    include(implementation(forgeRuntimeLibrary("com.squareup.okhttp3:okhttp:3.14.9"))) 
+    include(implementation(forgeRuntimeLibrary("com.squareup.okio:okio:1.17.2"))) 
+
+    include(implementation(forgeRuntimeLibrary("com.fasterxml.jackson.core:jackson-annotations:2.10.1"))) 
+    include(implementation(forgeRuntimeLibrary("com.fasterxml.jackson.core:jackson-core:2.10.1"))) 
+    include(implementation(forgeRuntimeLibrary("com.fasterxml.jackson.core:jackson-databind:2.10.1"))) 
+
+    common(project(path: ":common", configuration: "namedElements")) { transitive = false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }
 

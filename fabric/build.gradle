@@ -25,7 +25,22 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
 
-    include implementation("com.theokanning.openai-gpt3-java:service:0.11.0")
+    include(implementation("com.theokanning.openai-gpt3-java:service:0.11.0"))
+    include(implementation("com.theokanning.openai-gpt3-java:api:0.11.0"))
+    include(implementation("com.theokanning.openai-gpt3-java:client:0.11.0"))
+
+    include(implementation("io.reactivex.rxjava2:rxjava:2.0.0"))
+
+    include(implementation(api('com.squareup.retrofit2:retrofit:2.9.0')))
+    include(implementation('com.squareup.retrofit2:adapter-rxjava2:2.9.0'))
+    include(implementation('com.squareup.retrofit2:converter-jackson:2.9.0'))
+
+    include(implementation("com.squareup.okhttp3:okhttp:3.14.9"))
+    include(implementation("com.squareup.okio:okio:1.17.2"))
+
+    include(implementation("com.fasterxml.jackson.core:jackson-annotations:2.10.1"))
+    include(implementation("com.fasterxml.jackson.core:jackson-core:2.10.1"))
+    include(implementation("com.fasterxml.jackson.core:jackson-databind:2.10.1"))
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
