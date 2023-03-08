@@ -7,8 +7,13 @@ import com.bawnorton.mcgpt.store.SecureTokenStorage;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
+import dev.architectury.event.Event;
+import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.event.events.client.ClientPlayerEvent;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.toast.SystemToast;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
@@ -34,13 +39,19 @@ public class MCGPT {
         if(!Config.getInstance().token.isEmpty()) {
             startService();
         }
+
+        ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player -> {
+            if(!notAuthed()) {
+                player.sendMessage(Text.of("§b[MCGPT]: §aSuccessfully authenticated"));
+            }
+        });
     }
 
     public static void startService() {
         service = new OpenAiService(SecureTokenStorage.decrypt(Config.getInstance().secret, Config.getInstance().token));
     }
 
-    private static boolean notAuthed() {
+    public static boolean notAuthed() {
         if(service == null) {
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if(player != null) {
