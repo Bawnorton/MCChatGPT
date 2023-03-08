@@ -21,7 +21,6 @@ public class AuthCommand {
     }
 
     private static int execute(ServerCommandSource source, String token) {
-        System.out.println("Authenticating with token: " + token + " (" + token.length() + " characters)");
         if(token.length() != 51) {
             MCGPT.LOGGER.error("Invalid token length");
             source.sendFeedback(Text.literal("Invalid token"), false);
