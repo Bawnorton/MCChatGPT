@@ -11,6 +11,8 @@ import dev.architectury.event.events.client.ClientPlayerEvent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,18 +108,17 @@ public class MCGPT {
                 .model("gpt-3.5-turbo")
                 .build();
         ChatMessage reply;
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        if(player == null) return;
         try {
             reply = service.createChatCompletion(req).getChoices().get(0).getMessage();
             conversation.add(reply);
             if(conversation.size() > 10) {
                 conversation.remove(1); // don't remove the first message, as it's the minecraft context
             }
-        } catch (RuntimeException e) {
-            reply = new ChatMessage("system", "§cAn error occurred while communicating with OpenAI. Please check your internet connection, or try again later.");
-        }
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if(player != null) {
             player.sendMessage(Text.of("<ChatGPT> " + reply.getContent().replaceAll("^\\s+|\\s+$", "")), false);
+        } catch (RuntimeException e) {
+            player.sendMessage(Text.literal("§b[MCGPT]: §cAn error occurred while communicating with OpenAI. Please check your internet connection, or try again later.").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))));
         }
     }
 
