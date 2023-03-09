@@ -105,10 +105,15 @@ public class MCGPT {
                 .messages(conversation)
                 .model("gpt-3.5-turbo")
                 .build();
-        ChatMessage reply = service.createChatCompletion(req).getChoices().get(0).getMessage();
-        conversation.add(reply);
-        if(conversation.size() > 10) {
-            conversation.remove(1); // don't remove the first message, as it's the minecraft context
+        ChatMessage reply;
+        try {
+            reply = service.createChatCompletion(req).getChoices().get(0).getMessage();
+            conversation.add(reply);
+            if(conversation.size() > 10) {
+                conversation.remove(1); // don't remove the first message, as it's the minecraft context
+            }
+        } catch (RuntimeException e) {
+            reply = new ChatMessage("system", "§cAn error occurred while communicating with OpenAI. Please check your internet connection, or try again later.");
         }
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player != null) {
