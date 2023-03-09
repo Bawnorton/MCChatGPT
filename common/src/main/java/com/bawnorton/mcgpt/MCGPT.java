@@ -48,7 +48,7 @@ public class MCGPT {
 
         ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player -> {
             if(!notAuthed(false)) {
-                player.sendMessage(Text.of("§b[MCGPT]: §aSuccessfully authenticated"));
+                player.sendMessage(Text.translatable("mcchatgpt.auth.success"));
             }
         });
     }
@@ -65,8 +65,8 @@ public class MCGPT {
         if(service == null) {
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if(player != null && prompt) {
-                player.sendMessage(Text.of("§cPlease authenticate with an OpenAI token using /mcgpt-auth <token>"));
-                player.sendMessage(Text.of("§cIf you do not have a token, you can generate one here:"));
+                player.sendMessage(Text.translatable("mcchatgpt.auth.message1"));
+                player.sendMessage(Text.translatable("mcchatgpt.auth.message2"));
                 player.sendMessage(Text.literal("§chttps://platform.openai.com/account/api-keys").styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/api-keys"))));
             }
             return true;
@@ -118,7 +118,7 @@ public class MCGPT {
             }
             player.sendMessage(Text.of("<ChatGPT> " + reply.getContent().replaceAll("^\\s+|\\s+$", "")), false);
         } catch (RuntimeException e) {
-            player.sendMessage(Text.literal("§b[MCGPT]: §cAn error occurred while communicating with OpenAI. Please check your internet connection, or try again later.").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))));
+            player.sendMessage(Text.translatable("mcchatgpt.ask.error").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))));
         }
     }
 

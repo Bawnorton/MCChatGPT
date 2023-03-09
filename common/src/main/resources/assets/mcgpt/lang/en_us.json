@@ -1,6 +1,9 @@
 {
-<<<<<<< HEAD
-=======
-  "item.mcgpt.example_item": "Example Item"
->>>>>>> f4d654c154d597c0616d7bb80b151f9b04a09dca
+  "mcchatgpt.auth.success": "§b[MCGPT]: §aSuccessfully Authenticated",
+  "mcchatgpt.auth.message1": "§cPlease authenticate with an OpenAI token using /mcgpt-auth <token>",
+  "mcchatgpt.auth.message2": "§cIf you do not have a token, you can generate one here:",
+  "mcchatgpt.ask.error": "§b[MCGPT]: §cAn error occurred while communicating with OpenAI. Please check your internet connection, or try again later.",
+  "mcchatgpt.auth.invalid.token": "§b[MCGPT]: §cInvalid token.",
+  "mcchatgpt.conversation.new": "§b[MCGPT]: §fStarted a new conversation (%s)",
+  "mcchatgpt.conversation.continue": "§b[MCGPT]: §fContinuing conversation (%s)"
 }

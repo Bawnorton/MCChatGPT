@@ -17,9 +17,9 @@ public class NewConversationCommand {
         boolean newConversation = MCGPT.nextConversation();
         int index = MCGPT.getConversationIndex();
         if(newConversation) {
-            source.sendFeedback(Text.literal("§b[MCGPT]: §fStarted a new conversation (" + (index + 1) + ")"), false);
+            source.sendFeedback(Text.translatable("mcchatgpt.conversation.new", index + 1), false);
         } else {
-            source.sendFeedback(Text.literal("§b[MCGPT]: §fContinuing conversation (" + (index + 1) + ")"), false);
+            source.sendFeedback(Text.translatable("mcchatgpt.conversation.continue", index + 1), false);
         }
         return 1;
     }

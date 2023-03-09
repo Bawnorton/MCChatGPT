@@ -3,7 +3,7 @@ MCGPT
 ### A mod that provides a ChatGPT interface inside minecraft
 
 [![Modrinth](https://img.shields.io/modrinth/dt/mcchatgpt?color=00AF5C&label=downloads&logo=modrinth)](https://modrinth.com/mod/mcchatgpt)
-[![CurseForge](https://cf.way2muchnoise.eu/full_835315_downloads.svg)](https://curseforge.com/minecraft/mc-mods/mc-chat-gpt)
+[![CurseForge](https://cf.way2muchnoise.eu/full_835315_downloads.svg)](https://curseforge.com/minecraft/mc-mods/mcchatgpt)
 
 ### This model knows it's inside Minecraft, and will respond accordingly.
 - The model is limited by ChatGPT's training data, which ended around when 1.17 was released.
