@@ -1,0 +1,12 @@
+{
+  "mcchatgpt.auth.success": "§b[MCChatGPT]: §aSuccessfully Authenticated",
+  "mcchatgpt.auth.message1": "§cPlease authenticate with an OpenAI token using /mcchatgpt-auth <token>",
+  "mcchatgpt.auth.message2": "§cIf you do not have a token, you can generate one here:",
+  "mcchatgpt.auth.invalid.token": "§b[MCChatGPT]: §cInvalid token.",
+  "mcchatgpt.ask.error": "§b[MCChatGPT]: §cAn error occurred while communicating with OpenAI. Please check your internet connection, or try again later.",
+  "mcchatgpt.ask.quota": "§b[MCChatGPT]: §cYou have exceeded your current OpenAI API quota. Click me to view your plan and billing details.",
+  "mcchatgpt.conversation.new": "§b[MCChatGPT]: §fStarted a new conversation (%s)",
+  "mcchatgpt.conversation.continue": "§b[MCChatGPT]: §fContinuing conversation (%s)",
+  "mcchatgpt.conversation.list": "§b[MCChatGPT]: §fConversations:",
+  "mcchatgpt.conversation.invalid": "§b[MCChatGPT]: §cInvalid conversation ID."
+}

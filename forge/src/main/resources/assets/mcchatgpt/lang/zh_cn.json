@@ -1,0 +1,12 @@
+{
+  "mcchatgpt.auth.success": "§b[MCChatGPT]: §a身份验证成功",
+  "mcchatgpt.auth.message1": "§c请使用/mcchatgpt-auth <token>和OpenAI令牌进行身份验证",
+  "mcchatgpt.auth.message2": "§c如果你没有令牌，可以在此处生成一个：",
+  "mcchatgpt.auth.invalid.token": "§b[MCChatGPT]: §c无效令牌。",
+  "mcchatgpt.ask.error": "§b[MCChatGPT]: §c与OpenAI连接时出错。请检查你的网络连接或稍后重试。",
+  "mcchatgpt.ask.quota": "§b[MCChatGPT]: §c您已经超过了您当前的OpenAI API配额。点击我查看您的计划和计费细节。",
+  "mcchatgpt.conversation.new": "§b[MCChatGPT]: §f新建会话（%s）",
+  "mcchatgpt.conversation.continue": "§b[MCChatGPT]: §f继续会话（%s）",
+  "mcchatgpt.conversation.list": "§b[MCChatGPT]: §f会话:",
+  "mcchatgpt.conversation.invalid": "§b[MCChatGPT]: §c无效的会话 ID。"
+}

@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "mcchatgpt",
+	"version": "${version}",
+	"name": "MCChatGPT",
+	"description": "A mod that provides a chat command to interact with ChatGPT in the context of Minecraft.",
+	"authors": [
+		"Bawnorton"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "MIT License",
+	"icon": "assets/mcchatgpt/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "com.bawnorton.mcchatgpt.MCChatGPT"
+		],
+		"client": [
+			"com.bawnorton.mcchatgpt.MCChatGPTClient"
+		]
+	},
+	"mixins": [
+		"mcchatgpt.mixins.json",
+		{
+			"config": "mcchatgpt.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.14.17",
+		"minecraft": "~1.19.4",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
