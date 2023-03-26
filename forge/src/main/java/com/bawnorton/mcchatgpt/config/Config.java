@@ -14,6 +14,10 @@ public class Config {
     @SerializedName("secret")
     public String secret;
 
+    @Expose
+    @SerializedName("context_level")
+    public Integer contextLevel;
+
     private Config() {
     }
 

@@ -4,11 +4,11 @@ import com.bawnorton.mcchatgpt.MCChatGPT;
 import com.bawnorton.mcchatgpt.config.Config;
 import com.bawnorton.mcchatgpt.config.ConfigManager;
 import com.bawnorton.mcchatgpt.store.SecureTokenStorage;
+import com.bawnorton.mcchatgpt.util.Conversation;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.theokanning.openai.completion.chat.ChatMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -32,6 +32,8 @@ public class CommandHandler {
         registerNextConversationCommand(dispatcher);
         registerPreviousConversationCommand(dispatcher);
         registerSetConversationCommand(dispatcher);
+        registerSetContextLevelCommand(dispatcher);
+        registerGetContextLevelCommand(dispatcher);
     }
 
     private static void registerAskCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -73,12 +75,12 @@ public class CommandHandler {
     private static void registerListConversationsCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("listconversations").executes(context -> {
             ClientCommandSourceStack source = (ClientCommandSourceStack) context.getSource();
-            List<List<ChatMessage>> conversations = MCChatGPT.getConversations();
+            List<Conversation> conversations = MCChatGPT.getConversations();
             source.sendSuccess(Component.translatable("mcchatgpt.conversation.list"), false);
             for (int i = 0; i < conversations.size(); i++) {
-                List<ChatMessage> conversation = conversations.get(i);
-                if(conversation.size() < 2) continue;
-                String lastQuestion = conversation.get(conversation.size() - 2).getContent();
+                Conversation conversation = conversations.get(i);
+                if(conversation.messageCount() < 2) continue;
+                String lastQuestion = conversation.getPreviewMessage().getContent();
                 source.sendSuccess(Component.literal("§b[MCChatGPT]: §r" + (i + 1) + ": " + lastQuestion), false);
             }
             return 1;
@@ -133,6 +135,29 @@ public class CommandHandler {
                     source.sendSuccess(Component.translatable("mcchatgpt.conversation.continue", index + 1), false);
                     return 1;
                 }));
+        dispatcher.register(builder);
+    }
+
+    private static void registerSetContextLevelCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("setcontextlevel")
+                .then(Commands.argument("level", IntegerArgumentType.integer(0, 3)).executes(context -> {
+                    ClientCommandSourceStack source = (ClientCommandSourceStack) context.getSource();
+                    int level = IntegerArgumentType.getInteger(context, "level");
+                    Config.getInstance().contextLevel = level;
+                    ConfigManager.saveConfig();
+                    source.sendSuccess(Component.translatable("mcchatgpt.context.level.set", level, Component.translatable("mcchatgpt.context.level." + level).getString()), false);
+                    return 1;
+                }));
+        dispatcher.register(builder);
+    }
+
+    private static void registerGetContextLevelCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("getcontextlevel").executes(context -> {
+            ClientCommandSourceStack source = (ClientCommandSourceStack) context.getSource();
+            int level = Config.getInstance().contextLevel;
+            source.sendSuccess(Component.translatable("mcchatgpt.context.level.get", level, Component.translatable("mcchatgpt.context.level." + level).getString()), false);
+            return 1;
+        });
         dispatcher.register(builder);
     }
 }
