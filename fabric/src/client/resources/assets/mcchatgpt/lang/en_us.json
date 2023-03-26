@@ -13,6 +13,7 @@
   "mcchatgpt.context.level.set": "§b[MCChatGPT]: §fContext level set to %s (%s)",
   "mcchatgpt.context.level.0": "no information",
   "mcchatgpt.context.level.1": "player information",
-  "mcchatgpt.context.level.2": "player and entity information",
-  "mcchatgpt.context.level.3": "player, entity, and world information"
+  "mcchatgpt.context.level.2": "player and world information",
+  "mcchatgpt.context.level.3": "player, world, and entity information",
+  "mcchatgpt.token.usage": "Used %s tokens ($%s)"
 }

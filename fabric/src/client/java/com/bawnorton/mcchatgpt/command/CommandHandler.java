@@ -4,11 +4,11 @@ import com.bawnorton.mcchatgpt.MCChatGPTClient;
 import com.bawnorton.mcchatgpt.config.Config;
 import com.bawnorton.mcchatgpt.config.ConfigManager;
 import com.bawnorton.mcchatgpt.store.SecureTokenStorage;
+import com.bawnorton.mcchatgpt.util.Conversation;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.theokanning.openai.completion.chat.ChatMessage;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
@@ -69,12 +69,12 @@ public class CommandHandler {
     private static void registerListConversationsCommand(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal("listconversations").executes(context -> {
             FabricClientCommandSource source = context.getSource();
-            List<List<ChatMessage>> conversations = MCChatGPTClient.getConversations();
+            List<Conversation> conversations = MCChatGPTClient.getConversations();
             source.sendFeedback(Text.translatable("mcchatgpt.conversation.list"));
             for (int i = 0; i < conversations.size(); i++) {
-                List<ChatMessage> conversation = conversations.get(i);
-                if(conversation.size() < 2) continue;
-                String lastQuestion = conversation.get(conversation.size() - 2).getContent();
+                Conversation conversation = conversations.get(i);
+                if(conversation.messageCount() < 2) continue;
+                String lastQuestion = conversation.getPreviewMessage().getContent();
                 source.sendFeedback(Text.of("§b[MCChatGPT]: §r" + (i + 1) + ": " + lastQuestion));
             }
             return 1;
@@ -137,7 +137,8 @@ public class CommandHandler {
                 .then(ClientCommandManager.argument("level", IntegerArgumentType.integer(0, 3)).executes(context -> {
                     FabricClientCommandSource source = context.getSource();
                     int level = IntegerArgumentType.getInteger(context, "level");
-                    MCChatGPTClient.setContextLevel(level);
+                    Config.getInstance().contextLevel = level;
+                    ConfigManager.saveConfig();
                     source.sendFeedback(Text.translatable("mcchatgpt.context.level.set", level, Text.translatable("mcchatgpt.context.level." + level).getString()));
                     return 1;
                 }));
@@ -147,7 +148,7 @@ public class CommandHandler {
     private static void registerGetContextLevelCommand(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal("getcontextlevel").executes(context -> {
             FabricClientCommandSource source = context.getSource();
-            int level = MCChatGPTClient.getContextLevel();
+            int level = Config.getInstance().contextLevel;
             source.sendFeedback(Text.translatable("mcchatgpt.context.level.get", level, Text.translatable("mcchatgpt.context.level." + level).getString()));
             return 1;
         });

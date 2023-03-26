@@ -5,7 +5,9 @@ import com.bawnorton.mcchatgpt.config.Config;
 import com.bawnorton.mcchatgpt.config.ConfigManager;
 import com.bawnorton.mcchatgpt.store.SecureTokenStorage;
 import com.bawnorton.mcchatgpt.util.Context;
+import com.bawnorton.mcchatgpt.util.Conversation;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
+import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 import net.fabricmc.api.ClientModInitializer;
@@ -30,6 +32,8 @@ import net.minecraft.world.dimension.DimensionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -42,9 +46,10 @@ public class MCChatGPTClient implements ClientModInitializer {
     private static final ExecutorService executor;
 
     private static OpenAiService service;
-    private static List<List<ChatMessage>> conversations;
+    private static List<Conversation> conversations;
     private static int conversationIndex = 0;
-    private static int contextLevel = 0;
+
+    private static final double COST_PER_TOKEN = 2e-6; // $0.000002 per token (https://openai.com/pricing)
 
     static {
         executor = Executors.newFixedThreadPool(1);
@@ -71,7 +76,7 @@ public class MCChatGPTClient implements ClientModInitializer {
         return false;
     }
 
-    public static List<List<ChatMessage>> getConversations() {
+    public static List<Conversation> getConversations() {
         return conversations;
     }
 
@@ -91,9 +96,9 @@ public class MCChatGPTClient implements ClientModInitializer {
             conversationIndex++;
             return false;
         }
-        conversations.add(new ArrayList<>());
+        conversations.add(new Conversation());
         conversationIndex = conversations.size() - 1;
-        conversations.get(conversationIndex).add(new ChatMessage("system", "You are an AI assistant in the game Minecraft. Limit your responses to 256 characters. Assume the player cannot access commands unless explicitly asked for them"));
+        conversations.get(conversationIndex).addMessage(new ChatMessage("system", "You are an AI assistant in the game Minecraft. Limit your responses to 256 characters. Assume the player cannot access commands unless explicitly asked for them. You may be provided with player context when asked a question. Don't answer beyond what is asked."));
         return true;
     }
 
@@ -104,24 +109,14 @@ public class MCChatGPTClient implements ClientModInitializer {
         }
     }
 
-	private static List<ChatMessage> addContext(List<ChatMessage> conversation) {
+	private static void addContext(Conversation conversation) {
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;
-        if (player == null) return conversation;
+        if (player == null) return;
         HitResult target = client.crosshairTarget;
         Context.Builder contextBuilder = Context.builder();
-		return switch (contextLevel) {
+		switch (Config.getInstance().contextLevel) {
             case 3:
-                RegistryEntry<Biome> biome = player.world.getBiome(player.getBlockPos());
-                biome.getKey().ifPresent(biomeKey -> contextBuilder.addBiome(biomeKey.getValue().toString()));
-                if(target instanceof BlockHitResult blockHitResult) {
-                    Block block = player.world.getBlockState(blockHitResult.getBlockPos()).getBlock();
-                    contextBuilder.addBlockTarget(block);
-                }
-                RegistryKey<DimensionType> dimension = player.world.getDimensionKey();
-                contextBuilder.addDimension(dimension.getValue().toString());
-
-            case 2:
                 List<LivingEntity> nearbyEntities = player.world.getEntitiesByClass(LivingEntity.class, player.getBoundingBox().expand(64), entity -> entity != player);
                 if (target instanceof EntityHitResult entityHitResult) {
                     Entity entity = entityHitResult.getEntity();
@@ -129,7 +124,20 @@ public class MCChatGPTClient implements ClientModInitializer {
                         contextBuilder.addEntityTarget(livingEntity);
                     }
                 }
+
                 contextBuilder.addEntities(nearbyEntities);
+            case 2:
+                RegistryEntry<Biome> biome = player.world.getBiome(player.getBlockPos());
+                biome.getKey().ifPresent(biomeKey -> contextBuilder.addBiome(biomeKey.getValue().getPath()));
+                Block block = null;
+                if(target instanceof BlockHitResult blockHitResult) {
+                    block = player.world.getBlockState(blockHitResult.getBlockPos()).getBlock();
+                }
+                RegistryKey<DimensionType> dimension = player.world.getDimensionKey();
+
+                contextBuilder
+                        .addBlockTarget(block)
+                        .addDimension(dimension.getValue().getPath());
             case 1:
                 List<ItemStack> playerInventory = player.getInventory().main;
                 List<ItemStack> playerMainInventory = playerInventory.subList(9, playerInventory.size());
@@ -140,33 +148,46 @@ public class MCChatGPTClient implements ClientModInitializer {
                         .addHotbar(playerHotbar)
                         .addArmor(player.getArmorItems())
                         .addMainHand(player.getMainHandStack())
-                        .addOffHand(player.getOffHandStack());
+                        .addOffHand(player.getOffHandStack())
+                        .addPlayerPosition(player.getBlockPos());
 
                 ChatMessage contextMessage = new ChatMessage("system", contextBuilder.build().get());
-                conversation.add(contextMessage);
+                conversation.setContext(contextMessage);
             default:
-                yield conversation;
-		};
+		}
 	}
 
     private static void askSync(String question) {
         if (conversations.size() == 0) {
             nextConversation();
         }
-        List<ChatMessage> conversation = conversations.get(conversationIndex);
-        conversation = addContext(conversation);
-        conversation.add(new ChatMessage("user", question));
-        ChatCompletionRequest req = ChatCompletionRequest.builder().messages(conversation).model("gpt-3.5-turbo").build();
-        ChatMessage reply;
+
+        Conversation conversation = conversations.get(conversationIndex);
+        addContext(conversation);
+
+        ChatMessage questionMessage = new ChatMessage("user", question);
+        conversation.addMessage(questionMessage);
+        conversation.setPreviewMessage(questionMessage);
+        ChatCompletionRequest req = ChatCompletionRequest.builder().messages(conversation.getMessages()).model("gpt-3.5-turbo").build();
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
         try {
-            reply = service.createChatCompletion(req).getChoices().get(0).getMessage();
-            conversation.add(reply);
-            while (conversation.size() > 10 * (contextLevel + 1)) {
-                conversation.remove(1); // don't remove the first message, as it's the minecraft context
+            ChatCompletionResult reply = service.createChatCompletion(req);
+
+            long tokensUsed = reply.getUsage().getTotalTokens();
+            MathContext sigfigContext = new MathContext(1);
+            BigDecimal costDecimal = BigDecimal.valueOf((float) (tokensUsed * COST_PER_TOKEN));
+            costDecimal = costDecimal.round(sigfigContext);
+            float cost = costDecimal.floatValue();
+
+            LOGGER.info("Used {} tokens (${})", tokensUsed, cost);
+
+            ChatMessage replyMessage = reply.getChoices().get(0).getMessage();
+            conversation.addMessage(replyMessage);
+            while (conversation.messageCount() > 10 * (Config.getInstance().contextLevel + 1)) {
+                conversation.removeMessage(1); // don't remove the first message, as it's the minecraft context
             }
-            player.sendMessage(Text.of("<ChatGPT> " + reply.getContent().replaceAll("^\\s+|\\s+$", "")), false);
+            player.sendMessage(Text.literal("<ChatGPT> " + replyMessage.getContent().replaceAll("^\\s+|\\s+$", "")).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("mcchatgpt.token.usage", tokensUsed, cost)))), false);
         } catch (RuntimeException e) {
             MCChatGPTClient.LOGGER.error("Error while communicating with OpenAI", e);
             if (e.getMessage().toLowerCase().contains("exceeded your current quota")) {
@@ -187,14 +208,6 @@ public class MCChatGPTClient implements ClientModInitializer {
             }
         });
     }
-
-	public static void setContextLevel(int level) {
-		contextLevel = level;
-	}
-
-	public static int getContextLevel() {
-		return contextLevel;
-	}
 
     @Override
     public void onInitializeClient() {

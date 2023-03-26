@@ -3,6 +3,7 @@ package com.bawnorton.mcchatgpt.util;
 import net.minecraft.block.Block;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class Context {
 
     @SuppressWarnings("UnusedReturnValue")
     public static class Builder {
-        private final StringBuilder context = new StringBuilder("Context:\n");
+        private final StringBuilder context = new StringBuilder("Player Context:\n");
 
         private Iterable<ItemStack> filterAir(Iterable<ItemStack> inventory) {
             List<ItemStack> filtered = new ArrayList<>();
@@ -94,6 +95,17 @@ public class Context {
             return this;
         }
 
+        public Builder addPlayerPosition(BlockPos blockPos) {
+            context.append("Player Position: x = ")
+                    .append(blockPos.getX())
+                    .append(", y=")
+                    .append(blockPos.getY())
+                    .append(", z=")
+                    .append(blockPos.getZ())
+                    .append("\n");
+            return this;
+        }
+
         public Builder addHotbar(Iterable<ItemStack> hotbar) {
             context.append("Hotbar (Item [Count]): ");
             for (ItemStack itemStack : hotbar) {
@@ -109,12 +121,18 @@ public class Context {
         }
 
         public Builder addEntities(List<LivingEntity> nearbyEntities) {
-            context.append("Nearby Entities (Type [Health]): ");
+            context.append("Nearby Entities (Type [Health, Position]): ");
             for (LivingEntity entity : nearbyEntities) {
                 context.append(entity.getType().getName().getString())
                         .append(" [")
                         .append(entity.getHealth())
-                        .append("], ");
+                        .append(", (x=")
+                        .append(entity.getBlockPos().getX())
+                        .append(", y=")
+                        .append(entity.getBlockPos().getY())
+                        .append(", z=")
+                        .append(entity.getBlockPos().getZ())
+                        .append(")], ");
             }
             context.delete(context.length() - 2, context.length());
             context.append("\n");
@@ -126,11 +144,17 @@ public class Context {
                 context.append("Looking At Entity: None\n");
                 return this;
             }
-            context.append("Looking At Entity (Type [Health, Holding]): ")
+            context.append("Looking At Entity (Type [Health, Position, Holding]): ")
                     .append(targetEntity.getType().getName().getString())
                     .append(" [")
                     .append(targetEntity.getHealth())
-                    .append(", ")
+                    .append(", (x=")
+                    .append(targetEntity.getBlockPos().getX())
+                    .append(", y=")
+                    .append(targetEntity.getBlockPos().getY())
+                    .append(", z=")
+                    .append(targetEntity.getBlockPos().getZ())
+                    .append("),")
                     .append(targetEntity.getMainHandStack().getName().getString())
                     .append("]\n");
             return this;
@@ -150,7 +174,11 @@ public class Context {
             return this;
         }
 
-        public Builder addBlockTarget(Block block) {
+        public Builder addBlockTarget(@Nullable Block block) {
+            if (block == null) {
+                context.append("Looking At Block: None\n");
+                return this;
+            }
             context.append("Looking At Block: ")
                     .append(block.getName().getString())
                     .append("\n");
