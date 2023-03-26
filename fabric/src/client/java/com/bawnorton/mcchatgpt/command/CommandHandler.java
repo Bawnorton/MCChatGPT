@@ -25,6 +25,8 @@ public class CommandHandler {
             registerNextConversationCommand(dispatcher);
             registerPreviousConversationCommand(dispatcher);
             registerSetConversationCommand(dispatcher);
+            registerSetContextLevelCommand(dispatcher);
+            registerGetContextLevelCommand(dispatcher);
         });
     }
 
@@ -127,6 +129,28 @@ public class CommandHandler {
                     source.sendFeedback(Text.translatable("mcchatgpt.conversation.continue", index + 1));
                     return 1;
                 }));
+        dispatcher.register(builder);
+    }
+
+    private static void registerSetContextLevelCommand(CommandDispatcher<FabricClientCommandSource> dispatcher) {
+        LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal("setcontextlevel")
+                .then(ClientCommandManager.argument("level", IntegerArgumentType.integer(0, 3)).executes(context -> {
+                    FabricClientCommandSource source = context.getSource();
+                    int level = IntegerArgumentType.getInteger(context, "level");
+                    MCChatGPTClient.setContextLevel(level);
+                    source.sendFeedback(Text.translatable("mcchatgpt.context.level.set", level, Text.translatable("mcchatgpt.context.level." + level).getString()));
+                    return 1;
+                }));
+        dispatcher.register(builder);
+    }
+
+    private static void registerGetContextLevelCommand(CommandDispatcher<FabricClientCommandSource> dispatcher) {
+        LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal("getcontextlevel").executes(context -> {
+            FabricClientCommandSource source = context.getSource();
+            int level = MCChatGPTClient.getContextLevel();
+            source.sendFeedback(Text.translatable("mcchatgpt.context.level.get", level, Text.translatable("mcchatgpt.context.level." + level).getString()));
+            return 1;
+        });
         dispatcher.register(builder);
     }
 }

@@ -3,6 +3,7 @@
 	"package": "com.bawnorton.mcchatgpt.mixin.client",
 	"compatibilityLevel": "JAVA_17",
 	"client": [
+		"PlayerInventoryAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -22,6 +22,7 @@ public class ConfigManager {
             config.secret = "";
             MCChatGPTClient.LOGGER.info("Token or secret not found, resetting");
         }
+        if (config.contextLevel == null || config.contextLevel < 0 || config.contextLevel > 3) config.contextLevel = 0;
 
         Config.update(config);
         save();
