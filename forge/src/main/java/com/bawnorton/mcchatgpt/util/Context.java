@@ -1,6 +1,7 @@
 package com.bawnorton.mcchatgpt.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -186,7 +187,7 @@ public class Context {
         }
 
         public Context build(int level) {
-            context.insert(context.indexOf("\n") + 1, "Context Provided: " + Text.translatable("mcchatgpt.context.level." + level).getString() + "\n");
+            context.insert(context.indexOf("\n") + 1, "Context Provided: " + Component.translatable("mcchatgpt.context.level." + level).getString() + "\n");
             return new Context(context.toString());
         }
     }
