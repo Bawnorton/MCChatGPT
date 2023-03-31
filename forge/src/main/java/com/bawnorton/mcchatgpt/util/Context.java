@@ -185,7 +185,8 @@ public class Context {
             return this;
         }
 
-        public Context build() {
+        public Context build(int level) {
+            context.insert(context.indexOf("\n") + 1, "Context Provided: " + Text.translatable("mcchatgpt.context.level." + level).getString() + "\n");
             return new Context(context.toString());
         }
     }

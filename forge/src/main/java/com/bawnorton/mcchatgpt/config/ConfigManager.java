@@ -23,6 +23,9 @@ public class ConfigManager {
             MCChatGPT.LOGGER.info("Token or secret not found, resetting");
         }
         if (config.contextLevel == null || config.contextLevel < 0 || config.contextLevel > 3) config.contextLevel = 0;
+        if (config.temperature == null || config.temperature < 0 || config.temperature > 2) config.temperature = 1.0;
+        if (config.estimatedCostPerToken == null || config.estimatedCostPerToken < 0) config.estimatedCostPerToken = 2e-6F;
+        if (config.model == null) config.model = "gpt-3.5-turbo";
 
         Config.update(config);
         save();

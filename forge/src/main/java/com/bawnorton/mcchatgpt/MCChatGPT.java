@@ -161,9 +161,9 @@ public class MCChatGPT {
                         .addOffHand(player.getOffhandItem())
                         .addPlayerPosition(player.blockPosition());
 
-                ChatMessage contextMessage = new ChatMessage("system", contextBuilder.build().get());
-                conversation.setContext(contextMessage);
             default:
+                ChatMessage contextMessage = new ChatMessage("system", contextBuilder.build(Config.getInstance().contextLevel).get());
+                conversation.setContext(contextMessage);
         }
     }
 
@@ -194,7 +194,7 @@ public class MCChatGPT {
 
             ChatMessage replyMessage = reply.getChoices().get(0).getMessage();
             conversation.addMessage(replyMessage);
-            while (conversation.messageCount() > 10 * (Config.getInstance().contextLevel + 1)) {
+            while (conversation.messageCount() > 10) {
                 conversation.removeMessage(1); // don't remove the first message, as it's the minecraft context
             }
             player.displayClientMessage(Component.literal("<ChatGPT> " + replyMessage.getContent().replaceAll("^\\s+|\\s+$", "")).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("mcchatgpt.token.usage", tokensUsed, cost)))), false);
@@ -202,6 +202,8 @@ public class MCChatGPT {
             MCChatGPT.LOGGER.error("Error while communicating with OpenAI", e);
             if(e.getMessage().toLowerCase().contains("exceeded your current quota")) {
                 player.displayClientMessage(Component.translatable("mcchatgpt.ask.quota").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/usage")).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("https://platform.openai.com/account/usage")))), false);
+            } else if (e.getMessage().toLowerCase().contains("maximum context length")) {
+                player.displayClientMessage(Component.translatable("mcchatgpt.ask.excessive.context").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(e.getMessage())))), false);
             } else {
                 player.displayClientMessage(Component.translatable("mcchatgpt.ask.error").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(e.getMessage())))), false);
             }
