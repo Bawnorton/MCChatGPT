@@ -5,6 +5,7 @@
   "mcchatgpt.auth.invalid.token": "§b[MCChatGPT]: §c无效令牌。",
   "mcchatgpt.ask.error": "§b[MCChatGPT]: §c与OpenAI连接时出错。请检查你的网络连接或稍后重试。",
   "mcchatgpt.ask.quota": "§b[MCChatGPT]: §c您已经超过了您当前的OpenAI API配额。点击我查看您的计划和计费细节。",
+  "mcchatgpt.ask.excessive.context": "§b[MCChatGPT]: §cOpenAI refused to process your message as it contains too much context. Please try again with a lower context level.",
   "mcchatgpt.conversation.new": "§b[MCChatGPT]: §f新建会话（%s）",
   "mcchatgpt.conversation.continue": "§b[MCChatGPT]: §f继续会话（%s）",
   "mcchatgpt.conversation.list": "§b[MCChatGPT]: §f会话:",

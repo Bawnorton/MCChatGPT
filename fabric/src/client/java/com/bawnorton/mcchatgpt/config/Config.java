@@ -7,16 +7,28 @@ public class Config {
     private static Config INSTANCE;
 
     @Expose
+    @SerializedName("model")
+    public String model;
+
+    @Expose
+    @SerializedName("temperature")
+    public Double temperature;
+
+    @Expose
+    @SerializedName("context_level")
+    public Integer contextLevel;
+
+    @Expose
+    @SerializedName("estimated_cost_per_token")
+    public Float estimatedCostPerToken;
+
+    @Expose
     @SerializedName("encrypted_token")
     public String token;
 
     @Expose
     @SerializedName("secret")
     public String secret;
-
-    @Expose
-    @SerializedName("context_level")
-    public Integer contextLevel;
 
     private Config() {
     }

@@ -5,6 +5,7 @@
   "mcchatgpt.auth.invalid.token": "§b[MCChatGPT]: §cInvalid token.",
   "mcchatgpt.ask.error": "§b[MCChatGPT]: §cAn error occurred while communicating with OpenAI. Please check your internet connection, or try again later.",
   "mcchatgpt.ask.quota": "§b[MCChatGPT]: §cYou have exceeded your current OpenAI API quota. Click me to view your plan and billing details.",
+  "mcchatgpt.ask.excessive.context": "§b[MCChatGPT]: §cOpenAI refused to process your message as it contains too much context. Please try again with a lower context level.",
   "mcchatgpt.conversation.new": "§b[MCChatGPT]: §fStarted a new conversation (%s)",
   "mcchatgpt.conversation.continue": "§b[MCChatGPT]: §fContinuing conversation (%s)",
   "mcchatgpt.conversation.list": "§b[MCChatGPT]: §fConversations:",

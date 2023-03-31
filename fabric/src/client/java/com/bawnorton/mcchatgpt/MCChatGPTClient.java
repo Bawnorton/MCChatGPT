@@ -49,8 +49,6 @@ public class MCChatGPTClient implements ClientModInitializer {
     private static List<Conversation> conversations;
     private static int conversationIndex = 0;
 
-    private static final double COST_PER_TOKEN = 2e-6; // $0.000002 per token (https://openai.com/pricing)
-
     static {
         executor = Executors.newFixedThreadPool(1);
     }
@@ -98,7 +96,7 @@ public class MCChatGPTClient implements ClientModInitializer {
         }
         conversations.add(new Conversation());
         conversationIndex = conversations.size() - 1;
-        conversations.get(conversationIndex).addMessage(new ChatMessage("system", "You are an AI assistant in the game Minecraft. Limit your responses to 256 characters. Assume the player cannot access commands unless explicitly asked for them. You may be provided with player context when asked a question. Don't answer beyond what is asked."));
+        conversations.get(conversationIndex).addMessage(new ChatMessage("system", "You are an AI assistant in the game Minecraft. Limit your responses to 256 characters. Assume the player cannot access commands unless explicitly asked for them. You may be provided with player context when asked a question. Don't answer beyond what is asked. Don't mention the player context, just use it"));
         return true;
     }
 
@@ -150,10 +148,9 @@ public class MCChatGPTClient implements ClientModInitializer {
                         .addMainHand(player.getMainHandStack())
                         .addOffHand(player.getOffHandStack())
                         .addPlayerPosition(player.getBlockPos());
-
-                ChatMessage contextMessage = new ChatMessage("system", contextBuilder.build().get());
-                conversation.setContext(contextMessage);
             default:
+                ChatMessage contextMessage = new ChatMessage("system", contextBuilder.build(Config.getInstance().contextLevel).get());
+                conversation.setContext(contextMessage);
 		}
 	}
 
@@ -168,7 +165,11 @@ public class MCChatGPTClient implements ClientModInitializer {
         ChatMessage questionMessage = new ChatMessage("user", question);
         conversation.addMessage(questionMessage);
         conversation.setPreviewMessage(questionMessage);
-        ChatCompletionRequest req = ChatCompletionRequest.builder().messages(conversation.getMessages()).model("gpt-3.5-turbo").build();
+        ChatCompletionRequest req = ChatCompletionRequest.builder()
+                .messages(conversation.getMessages())
+                .model(Config.getInstance().model)
+                .temperature(Config.getInstance().temperature)
+                .build();
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
         try {
@@ -176,7 +177,7 @@ public class MCChatGPTClient implements ClientModInitializer {
 
             long tokensUsed = reply.getUsage().getTotalTokens();
             MathContext sigfigContext = new MathContext(1);
-            BigDecimal costDecimal = BigDecimal.valueOf((float) (tokensUsed * COST_PER_TOKEN));
+            BigDecimal costDecimal = BigDecimal.valueOf(tokensUsed * Config.getInstance().estimatedCostPerToken);
             costDecimal = costDecimal.round(sigfigContext);
             float cost = costDecimal.floatValue();
 
@@ -184,7 +185,7 @@ public class MCChatGPTClient implements ClientModInitializer {
 
             ChatMessage replyMessage = reply.getChoices().get(0).getMessage();
             conversation.addMessage(replyMessage);
-            while (conversation.messageCount() > 10 * (Config.getInstance().contextLevel + 1)) {
+            while (conversation.messageCount() > 10) {
                 conversation.removeMessage(1); // don't remove the first message, as it's the minecraft context
             }
             player.sendMessage(Text.literal("<ChatGPT> " + replyMessage.getContent().replaceAll("^\\s+|\\s+$", "")).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("mcchatgpt.token.usage", tokensUsed, cost)))), false);
@@ -192,6 +193,8 @@ public class MCChatGPTClient implements ClientModInitializer {
             MCChatGPTClient.LOGGER.error("Error while communicating with OpenAI", e);
             if (e.getMessage().toLowerCase().contains("exceeded your current quota")) {
                 player.sendMessage(Text.translatable("mcchatgpt.ask.quota").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/usage")).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("https://platform.openai.com/account/usage")))));
+            } else if (e.getMessage().toLowerCase().contains("maximum context length")) {
+                player.sendMessage(Text.translatable("mcchatgpt.ask.excessive.context").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))));
             } else {
                 player.sendMessage(Text.translatable("mcchatgpt.ask.error").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))));
             }
