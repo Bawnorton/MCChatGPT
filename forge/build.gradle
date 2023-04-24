@@ -4,7 +4,7 @@ plugins {
     id 'net.minecraftforge.gradle' version '5.1.+'
 }
 
-version = '0.2.0'
+version = '0.2.1'
 group = 'com.bawnorton.mcchatgpt' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'mcchatgpt-forge'
 
