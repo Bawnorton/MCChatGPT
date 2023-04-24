@@ -11,6 +11,7 @@ import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.*;
@@ -117,11 +118,18 @@ public class MCChatGPT {
         }
     }
 
+    private static HitResult getLookingAt(LocalPlayer player) {
+        Minecraft client = Minecraft.getInstance();
+        MultiPlayerGameMode gameMode = client.gameMode;
+        if (gameMode == null) return null;
+        return player.pick(gameMode.getPickRange(), 1.0f, false);
+    }
+
     private static void addContext(Conversation conversation) {
         Minecraft client = Minecraft.getInstance();
         LocalPlayer player = client.player;
         if (player == null) return;
-        HitResult target = client.crosshairPickEntity.pick(client.gameMode.getPickRange(), 1.0f, false);
+        HitResult target = getLookingAt(player);
         Context.Builder contextBuilder = Context.builder();
         switch (Config.getInstance().contextLevel) {
             case 3:
@@ -136,14 +144,15 @@ public class MCChatGPT {
                 contextBuilder.addEntities(nearbyEntities);
             case 2:
                 Holder<Biome> biome = player.getLevel().getBiome(player.blockPosition());
-                biome.unwrapKey().ifPresent(biomeKey -> contextBuilder.addBiome(biomeKey.registry().getPath()));
+                biome.unwrapKey().ifPresent(biomeKey -> contextBuilder.addBiome(biomeKey.location().getPath()));
+
                 Block block = null;
                 if(target instanceof BlockHitResult blockHitResult) {
                     block = player.getLevel().getBlockState(blockHitResult.getBlockPos()).getBlock();
                 }
                 contextBuilder.addBlockTarget(block);
                 Holder<DimensionType> dimension = player.getLevel().dimensionTypeRegistration();
-                dimension.unwrapKey().ifPresent(dimensionKey -> contextBuilder.addDimension(dimensionKey.registry().getPath()));
+                dimension.unwrapKey().ifPresent(dimensionKey -> contextBuilder.addDimension(dimensionKey.location().getPath()));
 
             case 1:
                 List<ItemStack> playerInventory = player.getInventory().items;
