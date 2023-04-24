@@ -107,7 +107,7 @@ public class MCChatGPT {
         }
         conversations.add(new Conversation());
         conversationIndex = conversations.size() - 1;
-        conversations.get(conversationIndex).addMessage(new ChatMessage("system", "Context: You are an AI assistant in the game Minecraft. Limit your responses to 256 characters. Assume the player cannot access commands unless explicitly asked for them. Do not simulate conversations"));
+        conversations.get(conversationIndex).addMessage(new ChatMessage("system", "Context: You are an AI assistant in the game Minecraft 1.18.2. Limit your responses to 256 characters. Assume the player cannot access commands unless explicitly asked for them. Do not simulate conversations"));
         return true;
     }
 
