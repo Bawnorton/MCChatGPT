@@ -9,10 +9,11 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v1.FabricClientCommandSource;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class CommandHandler {
                 .then(ClientCommandManager.argument("question", StringArgumentType.greedyString()).executes(context -> {
                     FabricClientCommandSource source = context.getSource();
                     String question = StringArgumentType.getString(context, "question");
-                    source.sendFeedback(Text.literal("§7<" + source.getPlayer().getDisplayName().getString() + "> " + question));
+                    source.sendFeedback(new LiteralText("§7<" + source.getPlayer().getDisplayName().getString() + "> " + question));
                     MCChatGPTClient.ask(question);
                     return 1;
                 }));
@@ -49,18 +50,18 @@ public class CommandHandler {
                     String token = StringArgumentType.getString(context, "token");
                     if(token.length() != 51) {
                         MCChatGPTClient.LOGGER.error("Invalid token length");
-                        source.sendFeedback(Text.translatable("mcchatgpt.auth.invalid.token"));
+                        source.sendFeedback(new TranslatableText("mcchatgpt.auth.invalid.token"));
                         return 0;
                     }
                     if(!token.startsWith("sk-")) {
                         MCChatGPTClient.LOGGER.error("Invalid token prefix");
-                        source.sendFeedback(Text.translatable("mcchatgpt.auth.invalid.token"));
+                        source.sendFeedback(new TranslatableText("mcchatgpt.auth.invalid.token"));
                         return 0;
                     }
                     Config.getInstance().token = SecureTokenStorage.encrypt(token);
                     ConfigManager.saveConfig();
                     MCChatGPTClient.startService();
-                    source.sendFeedback(Text.translatable("mcchatgpt.auth.success"));
+                    source.sendFeedback(new TranslatableText("mcchatgpt.auth.success"));
                     return 1;
                 }));
         dispatcher.register(builder);
@@ -70,7 +71,7 @@ public class CommandHandler {
         LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal("listconversations").executes(context -> {
             FabricClientCommandSource source = context.getSource();
             List<Conversation> conversations = MCChatGPTClient.getConversations();
-            source.sendFeedback(Text.translatable("mcchatgpt.conversation.list"));
+            source.sendFeedback(new TranslatableText("mcchatgpt.conversation.list"));
             for (int i = 0; i < conversations.size(); i++) {
                 Conversation conversation = conversations.get(i);
                 if(conversation.messageCount() < 2) continue;
@@ -89,9 +90,9 @@ public class CommandHandler {
                 boolean newConversation = MCChatGPTClient.nextConversation();
                 int index = MCChatGPTClient.getConversationIndex();
                 if(newConversation) {
-                    source.sendFeedback(Text.translatable("mcchatgpt.conversation.new", index + 1));
+                    source.sendFeedback(new TranslatableText("mcchatgpt.conversation.new", index + 1));
                 } else {
-                    source.sendFeedback(Text.translatable("mcchatgpt.conversation.continue", index + 1));
+                    source.sendFeedback(new TranslatableText("mcchatgpt.conversation.continue", index + 1));
                 }
                 return 1;
             } catch (IllegalStateException e) {
@@ -107,7 +108,7 @@ public class CommandHandler {
                 FabricClientCommandSource source = context.getSource();
                 MCChatGPTClient.previousConversation();
                 int index = MCChatGPTClient.getConversationIndex();
-                source.sendFeedback(Text.translatable("mcchatgpt.conversation.continue", index + 1));
+                source.sendFeedback(new TranslatableText("mcchatgpt.conversation.continue", index + 1));
                 return 1;
             } catch (IllegalStateException e) {
                 return 0;
@@ -122,11 +123,11 @@ public class CommandHandler {
                     FabricClientCommandSource source = context.getSource();
                     int index = IntegerArgumentType.getInteger(context, "index") - 1;
                     if(index >= MCChatGPTClient.getConversations().size()) {
-                        source.sendFeedback(Text.translatable("mcchatgpt.conversation.invalid"));
+                        source.sendFeedback(new TranslatableText("mcchatgpt.conversation.invalid"));
                         return 0;
                     }
                     MCChatGPTClient.setConversationIndex(index);
-                    source.sendFeedback(Text.translatable("mcchatgpt.conversation.continue", index + 1));
+                    source.sendFeedback(new TranslatableText("mcchatgpt.conversation.continue", index + 1));
                     return 1;
                 }));
         dispatcher.register(builder);
@@ -139,7 +140,7 @@ public class CommandHandler {
                     int level = IntegerArgumentType.getInteger(context, "level");
                     Config.getInstance().contextLevel = level;
                     ConfigManager.saveConfig();
-                    source.sendFeedback(Text.translatable("mcchatgpt.context.level.set", level, Text.translatable("mcchatgpt.context.level." + level).getString()));
+                    source.sendFeedback(new TranslatableText("mcchatgpt.context.level.set", level, new TranslatableText("mcchatgpt.context.level." + level).getString()));
                     return 1;
                 }));
         dispatcher.register(builder);
@@ -149,7 +150,7 @@ public class CommandHandler {
         LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal("getcontextlevel").executes(context -> {
             FabricClientCommandSource source = context.getSource();
             int level = Config.getInstance().contextLevel;
-            source.sendFeedback(Text.translatable("mcchatgpt.context.level.get", level, Text.translatable("mcchatgpt.context.level." + level).getString()));
+            source.sendFeedback(new TranslatableText("mcchatgpt.context.level.get", level, new TranslatableText("mcchatgpt.context.level." + level).getString()));
             return 1;
         });
         dispatcher.register(builder);

@@ -18,15 +18,11 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.dimension.DimensionType;
 import org.slf4j.Logger;
@@ -65,9 +61,9 @@ public class MCChatGPTClient implements ClientModInitializer {
         if (service == null) {
             ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if (player != null && prompt) {
-                player.sendMessage(Text.translatable("mcchatgpt.auth.message1"));
-                player.sendMessage(Text.translatable("mcchatgpt.auth.message2"));
-                player.sendMessage(Text.literal("§chttps://platform.openai.com/account/api-keys").styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/api-keys"))));
+                player.sendMessage(new TranslatableText("mcchatgpt.auth.message1"), false);
+                player.sendMessage(new TranslatableText("mcchatgpt.auth.message2"), false);
+                player.sendMessage(new TranslatableText("§chttps://platform.openai.com/account/api-keys").styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/api-keys"))), false);
             }
             return true;
         }
@@ -131,11 +127,11 @@ public class MCChatGPTClient implements ClientModInitializer {
                 if(target instanceof BlockHitResult blockHitResult) {
                     block = player.world.getBlockState(blockHitResult.getBlockPos()).getBlock();
                 }
-                RegistryKey<DimensionType> dimension = player.world.getDimensionKey();
+                RegistryEntry<DimensionType> dimensionKey = player.world.method_40134();
 
                 contextBuilder
                         .addBlockTarget(block)
-                        .addDimension(dimension.getValue().getPath());
+                        .addDimension(dimensionKey.getKey().get().getValue().getPath());
             case 1:
                 List<ItemStack> playerInventory = player.getInventory().main;
                 List<ItemStack> playerMainInventory = playerInventory.subList(9, playerInventory.size());
@@ -188,15 +184,15 @@ public class MCChatGPTClient implements ClientModInitializer {
             while (conversation.messageCount() > 10) {
                 conversation.removeMessage(1); // don't remove the first message, as it's the minecraft context
             }
-            player.sendMessage(Text.literal("<ChatGPT> " + replyMessage.getContent().replaceAll("^\\s+|\\s+$", "")).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("mcchatgpt.token.usage", tokensUsed, cost)))), false);
+            player.sendMessage(new LiteralText("<ChatGPT> " + replyMessage.getContent().replaceAll("^\\s+|\\s+$", "")).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableText("mcchatgpt.token.usage", tokensUsed, cost)))), false);
         } catch (RuntimeException e) {
             MCChatGPTClient.LOGGER.error("Error while communicating with OpenAI", e);
             if (e.getMessage().toLowerCase().contains("exceeded your current quota")) {
-                player.sendMessage(Text.translatable("mcchatgpt.ask.quota").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/usage")).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("https://platform.openai.com/account/usage")))));
+                player.sendMessage(new TranslatableText("mcchatgpt.ask.quota").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/usage")).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("https://platform.openai.com/account/usage")))), false);
             } else if (e.getMessage().toLowerCase().contains("maximum context length")) {
-                player.sendMessage(Text.translatable("mcchatgpt.ask.excessive.context").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))));
+                player.sendMessage(new TranslatableText("mcchatgpt.ask.excessive.context").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))), false);
             } else {
-                player.sendMessage(Text.translatable("mcchatgpt.ask.error").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))));
+                player.sendMessage(new TranslatableText("mcchatgpt.ask.error").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of(e.getMessage())))), false);
             }
         }
     }
@@ -226,7 +222,7 @@ public class MCChatGPTClient implements ClientModInitializer {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             if (!notAuthed(false)) {
                 assert client.player != null;
-                client.player.sendMessage(Text.translatable("mcchatgpt.auth.success"));
+                client.player.sendMessage(new TranslatableText("mcchatgpt.auth.success"), false);
             }
         });
     }

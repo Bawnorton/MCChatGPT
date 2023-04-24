@@ -3,7 +3,7 @@ package com.bawnorton.mcchatgpt.util;
 import net.minecraft.block.Block;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
@@ -187,7 +187,7 @@ public class Context {
         }
 
         public Context build(int level) {
-            context.insert(context.indexOf("\n") + 1, "Context Provided: " + Text.translatable("mcchatgpt.context.level." + level).getString() + "\n");
+            context.insert(context.indexOf("\n") + 1, "Context Provided: " + new TranslatableText("mcchatgpt.context.level." + level).getString() + "\n");
             return new Context(context.toString());
         }
     }
