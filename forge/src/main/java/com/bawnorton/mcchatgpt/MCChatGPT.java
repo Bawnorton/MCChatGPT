@@ -13,10 +13,7 @@ import com.theokanning.openai.service.OpenAiService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
@@ -78,9 +75,9 @@ public class MCChatGPT {
         if (service == null) {
             LocalPlayer player = Minecraft.getInstance().player;
             if (player != null && prompt) {
-                player.displayClientMessage(Component.translatable("mcchatgpt.auth.message1"), false);
-                player.displayClientMessage(Component.translatable("mcchatgpt.auth.message2"), false);
-                player.displayClientMessage(Component.literal("§chttps://platform.openai.com/account/api-keys").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/api-keys"))), false);
+                player.displayClientMessage(new TranslatableComponent("mcchatgpt.auth.message1"), false);
+                player.displayClientMessage(new TranslatableComponent("mcchatgpt.auth.message2"), false);
+                player.displayClientMessage(new TextComponent("§chttps://platform.openai.com/account/api-keys").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/api-keys"))), false);
             }
             return true;
         }
@@ -197,15 +194,15 @@ public class MCChatGPT {
             while (conversation.messageCount() > 10) {
                 conversation.removeMessage(1); // don't remove the first message, as it's the minecraft context
             }
-            player.displayClientMessage(Component.literal("<ChatGPT> " + replyMessage.getContent().replaceAll("^\\s+|\\s+$", "")).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("mcchatgpt.token.usage", tokensUsed, cost)))), false);
+            player.displayClientMessage(new TextComponent("<ChatGPT> " + replyMessage.getContent().replaceAll("^\\s+|\\s+$", "")).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TranslatableComponent("mcchatgpt.token.usage", tokensUsed, cost)))), false);
         } catch (RuntimeException e) {
             MCChatGPT.LOGGER.error("Error while communicating with OpenAI", e);
             if(e.getMessage().toLowerCase().contains("exceeded your current quota")) {
-                player.displayClientMessage(Component.translatable("mcchatgpt.ask.quota").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/usage")).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("https://platform.openai.com/account/usage")))), false);
+                player.displayClientMessage(new TranslatableComponent("mcchatgpt.ask.quota").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://platform.openai.com/account/usage")).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("https://platform.openai.com/account/usage")))), false);
             } else if (e.getMessage().toLowerCase().contains("maximum context length")) {
-                player.displayClientMessage(Component.translatable("mcchatgpt.ask.excessive.context").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(e.getMessage())))), false);
+                player.displayClientMessage(new TranslatableComponent("mcchatgpt.ask.excessive.context").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(e.getMessage())))), false);
             } else {
-                player.displayClientMessage(Component.translatable("mcchatgpt.ask.error").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(e.getMessage())))), false);
+                player.displayClientMessage(new TranslatableComponent("mcchatgpt.ask.error").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent(e.getMessage())))), false);
             }
         }
     }
@@ -242,10 +239,10 @@ public class MCChatGPT {
             MinecraftForge.EVENT_BUS.addListener(CommandHandler::registerCommands);
         }
 
-        public static void onClientJoin(ClientPlayerNetworkEvent.LoggingIn event) {
+        public static void onClientJoin(ClientPlayerNetworkEvent.LoggedInEvent event) {
             if (!notAuthed(false)) {
                 LocalPlayer player = event.getPlayer();
-                player.displayClientMessage(Component.translatable("mcchatgpt.auth.success"), false);
+                player.displayClientMessage(new TranslatableComponent("mcchatgpt.auth.success"), false);
             }
         }
     }

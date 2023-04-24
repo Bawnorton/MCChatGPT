@@ -23,7 +23,6 @@ public class SecureTokenStorage {
             Config.getInstance().secret = secret;
             return encrypt(secret, data);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
@@ -37,7 +36,6 @@ public class SecureTokenStorage {
             byte[] cipherText = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(cipherText);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Error occured while encrypting data", e);
         }
     }
@@ -51,7 +49,6 @@ public class SecureTokenStorage {
             byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(encryptedString));
             return new String(cipherText);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Error occured while decrypting data", e);
         }
     }
