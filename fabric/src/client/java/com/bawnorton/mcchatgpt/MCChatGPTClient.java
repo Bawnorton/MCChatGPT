@@ -115,7 +115,7 @@ public class MCChatGPTClient implements ClientModInitializer {
         Context.Builder contextBuilder = Context.builder();
 		switch (Config.getInstance().contextLevel) {
             case 3:
-                List<LivingEntity> nearbyEntities = player.world.getEntitiesByClass(LivingEntity.class, player.getBoundingBox().expand(64), entity -> entity != player);
+                List<LivingEntity> nearbyEntities = player.getWorld().getEntitiesByClass(LivingEntity.class, player.getBoundingBox().expand(64), entity -> entity != player);
                 if (target instanceof EntityHitResult entityHitResult) {
                     Entity entity = entityHitResult.getEntity();
                     if (entity instanceof LivingEntity livingEntity) {
@@ -125,13 +125,13 @@ public class MCChatGPTClient implements ClientModInitializer {
 
                 contextBuilder.addEntities(nearbyEntities);
             case 2:
-                RegistryEntry<Biome> biome = player.world.getBiome(player.getBlockPos());
+                RegistryEntry<Biome> biome = player.getWorld().getBiome(player.getBlockPos());
                 biome.getKey().ifPresent(biomeKey -> contextBuilder.addBiome(biomeKey.getValue().getPath()));
                 Block block = null;
                 if(target instanceof BlockHitResult blockHitResult) {
-                    block = player.world.getBlockState(blockHitResult.getBlockPos()).getBlock();
+                    block = player.getWorld().getBlockState(blockHitResult.getBlockPos()).getBlock();
                 }
-                RegistryKey<DimensionType> dimension = player.world.getDimensionKey();
+                RegistryKey<DimensionType> dimension = player.getWorld().getDimensionKey();
 
                 contextBuilder
                         .addBlockTarget(block)
